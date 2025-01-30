@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,29 +7,37 @@ import {
   ScrollView,
   TextInput,
 } from "react-native";
-import { useState, useEffect } from "react";
-import { useFonts, Poppins_800ExtraBold } from "@expo-google-fonts/poppins";
 import * as Location from "expo-location";
-import { supabase } from "../utils/supabase";
-// import Map from "react-map-gl/mapbox";
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { supabase } from "../utils/supabase";
+
+// A simple NavBar pinned to the top
+export function NavBar() {
+  return (
+    <View style={styles.navBar}>
+      <Text style={styles.navBarTitle}>sheScape - A Safer World</Text>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const [SOS, setSOS] = useState(false);
   const [victims, setVictims] = useState([]);
   const [readyToHelp, setReadyToHelp] = useState(false);
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null
-  );
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
 
   const [temp, setTemp] = useState("");
   const [uniqueUser, setUser] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  // let [fontsLoaded] = useFonts({
+
+  // Optional font usage:
+  // const [fontsLoaded] = useFonts({
   //   Poppins_800ExtraBold,
   // });
+
+  // Fetch location
   const fetchLocation = async () => {
     setLoading(true);
     try {
@@ -45,145 +54,114 @@ export default function HomeScreen() {
       setLoading(false);
     }
   };
+
+  // Fetch victims periodically
   useEffect(() => {
     const interval = setInterval(() => {
       (async () => {
         let getNearByVictims = await supabase.from("allVictims").select("*");
-        // console.log(getNearByVictims);
         if (getNearByVictims.data) {
           setVictims(getNearByVictims.data);
         }
       })();
     }, 3000);
-
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch location on mount
   useEffect(() => {
     fetchLocation();
   }, []);
-  if (uniqueUser && location) {
-    return (
-      <SafeAreaView style={styles.container}>
-        {!victims.length ? (
-          <Text
-            style={{
-              fontSize: 20,
-              color: "white",
-              fontFamily: "Poppins_800ExtraBold",
-            }}>
-            No One Looking For Help At the moment
-          </Text>
-        ) : (
-          <ScrollView
-            contentContainerStyle={{
-              paddingBottom: 120,
-            }}>
-            {victims.map((i, index) => {
-              return (
-                <View
-                  key={index}
-                  style={{
-                    padding: 15,
-                    marginVertical: 5,
-                    backgroundColor: "#ecf0f1",
-                    borderBottomWidth: 1,
-                    borderRadius: 8,
-                    marginHorizontal: 10,
-                  }}>
-                  <Text style={{ fontSize: 30 }}>{i.name} Needs Help</Text>
-                  <Text>
-                    Emergency Keywords: {i.texts ? i.texts.join(",") : null}
-                  </Text>
-                  <MapView
-                    style={{ width: 300, height: 300 }}
-                    initialRegion={{
-                      latitude: i.location.coords.latitude,
-                      longitude: i.location.coords.longitude,
-                      latitudeDelta: 0.01,
-                      longitudeDelta: 0.01,
-                    }}>
-                    <Marker
-                      coordinate={{
+
+  // If user has entered name and location is available
+  const renderMainContent = () => {
+    if (uniqueUser && location) {
+      return (
+        <>
+          {!victims.length ? (
+            <Text style={styles.infoText}>
+              No One Looking For Help At The Moment
+            </Text>
+          ) : (
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+              {victims.map((i, index) => {
+                return (
+                  <View key={index} style={styles.victimCard}>
+                    <Text style={styles.victimName}>{i.name} Needs Help</Text>
+                    <Text>
+                      Emergency Keywords: {i.texts ? i.texts.join(", ") : null}
+                    </Text>
+                    <MapView
+                      style={styles.mapStyle}
+                      initialRegion={{
                         latitude: i.location.coords.latitude,
                         longitude: i.location.coords.longitude,
-                        latitudeDelta: 0.01, // Zoom in more
+                        latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
                       }}
-                      title={`${i.name}'s Location`}
-                      description="Help Her"
-                    />
-                  </MapView>
-                </View>
-              );
-            })}
-          </ScrollView>
-        )}
+                    >
+                      <Marker
+                        coordinate={{
+                          latitude: i.location.coords.latitude,
+                          longitude: i.location.coords.longitude,
+                          latitudeDelta: 0.01,
+                          longitudeDelta: 0.01,
+                        }}
+                        title={`${i.name}'s Location`}
+                        description="Help"
+                      />
+                    </MapView>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          )}
 
-        <View
-          style={{
-            backgroundColor: "white",
-            position: "absolute",
-            bottom: 100,
-          }}>
-          <View
-            style={[
-              styles.SOS,
-              readyToHelp
-                ? { backgroundColor: "green", borderColor: "green" }
-                : { backgroundColor: "red", borderColor: "red" },
-            ]}>
-            <Text
-              onPress={async () => {
-                fetchLocation();
-                if (!readyToHelp && location) {
-                  let addToDB = await supabase
-                    .from("availableVolunteers")
-                    .insert({ name: uniqueUser, location: location });
-                } else {
-                  let removefromDb = await supabase
-                    .from("availableVolunteers")
-                    .delete()
-                    .eq("name", uniqueUser);
-                }
-                setReadyToHelp(!readyToHelp);
-              }}
+          {/* Ready/Not Ready button */}
+          <View style={styles.helpButtonWrapper}>
+            <View
               style={[
-                {
-                  fontSize: 20,
-                  fontFamily: "Poppins_800ExtraBold",
-                  color: "white",
-                },
-              ]}>
-              {readyToHelp ? "I am Ready To Help" : "Not Ready"}
-            </Text>
+                styles.SOS,
+                readyToHelp
+                  ? { backgroundColor: "green", borderColor: "green" }
+                  : { backgroundColor: "red", borderColor: "red" },
+              ]}
+            >
+              <Text
+                onPress={async () => {
+                  fetchLocation();
+                  if (!readyToHelp && location) {
+                    await supabase
+                      .from("availableVolunteers")
+                      .insert({ name: uniqueUser, location: location });
+                  } else {
+                    await supabase
+                      .from("availableVolunteers")
+                      .delete()
+                      .eq("name", uniqueUser);
+                  }
+                  setReadyToHelp(!readyToHelp);
+                }}
+                style={styles.helpText}
+              >
+                {readyToHelp ? "I am Ready To Help" : "Not Ready"}
+              </Text>
+            </View>
           </View>
-        </View>
-      </SafeAreaView>
-    );
-  } else {
-    return (
-      <SafeAreaView
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          width: "80%",
-          alignContent: "center",
-          margin: "auto",
-        }}>
-        <View style={{ backgroundColor: "white", padding: 10 }}>
-          <Text style={{ borderBottomWidth: 1 }}>Enter Your Name:</Text>
+        </>
+      );
+    } else {
+      // If user name not entered or location not fetched, show input
+      return (
+        <View style={styles.inputContainer}>
+          <Text style={{ borderBottomWidth: 1, marginBottom: 10 }}>
+            Enter Your Name:
+          </Text>
           <TextInput
             onChangeText={(e) => {
               setTemp(e);
             }}
-            style={{
-              backgroundColor: "white",
-              borderColor: "black",
-              borderWidth: 0.5,
-              padding: 10,
-              margin: 2,
-            }}
+            style={styles.textInput}
           />
           <Button
             onPress={() => {
@@ -192,26 +170,126 @@ export default function HomeScreen() {
             title="Submit"
           />
         </View>
-      </SafeAreaView>
-    );
-  }
+      );
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* NavBar pinned at top */}
+      <NavBar />
+
+      {/* Main content: use marginTop to avoid overlap by the NavBar */}
+      <View style={styles.mainContent}>{renderMainContent()}</View>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
+  // Container
   container: {
     flex: 1,
+    backgroundColor: "#fff",
+  },
+
+  // NavBar: pinned to the top
+  navBar: {
+    // position: "absolute",
+    // top: 0,
+    
+  
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "#3A3A3A",
+    zIndex: 999, // Ensures it's above other content
+    paddingHorizontal: 20,
     justifyContent: "center",
-    alignItems: "center",
+  },
+  navBarTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+
+  // Content below the NavBar
+  mainContent: {
+    flex: 1,
+    marginTop: 60, // This ensures the content starts below the NavBar
+    alignItems: "center", // Center horizontally if you like
+  },
+
+  // When no victims
+  infoText: {
+    fontSize: 18,
+    color: "black",
+    marginTop: 20,
+    textAlign: "center",
+  },
+
+  // Scroll
+  scrollContent: {
+    paddingBottom: 120,
+  },
+
+  // Victim card
+  victimCard: {
+    padding: 15,
+    marginVertical: 5,
+    backgroundColor: "#ecf0f1",
+    borderRadius: 8,
+    width: "90%",
+    marginBottom: 15,
+  },
+  victimName: {
+    fontSize: 24,
+    marginBottom: 5,
+  },
+
+  // Map
+  mapStyle: {
+    width: "100%",
+    height: 200,
+    marginTop: 10,
+  },
+
+  // Help Button
+  helpButtonWrapper: {
+    position: "absolute",
+    bottom: 100,
+    alignSelf: "center",
   },
   SOS: {
-    borderRadius: "10px",
-    borderColor: "red",
-    backgroundColor: "red",
-    padding: 10,
+    borderRadius: 10,
     borderWidth: 1,
+    padding: 10,
   },
-  sosText: {
+  helpText: {
     color: "white",
-    fontSize: 40,
+    fontSize: 18,
+  },
+
+  // User Input
+  inputContainer: {
+    width: "80%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 8,
+    // optional shadow for iOS
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    // elevation for Android
+    elevation: 2,
+    marginTop: 50,
+  },
+  textInput: {
+    backgroundColor: "#f0f0f0",
+    borderColor: "black",
+    borderWidth: 0.5,
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
   },
 });

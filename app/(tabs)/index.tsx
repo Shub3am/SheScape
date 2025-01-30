@@ -7,6 +7,7 @@ import { supabase } from "../utils/supabase";
 import geolib from "geolib";
 import * as Location from "expo-location";
 import MapView, { Marker } from "react-native-maps";
+import { NavBar } from "./helpSomeone";
 export default function HomeScreen() {
   const [SOS, setSOS] = useState(false);
   const [Volunteers, setVolunteers] = useState([]);
@@ -68,7 +69,7 @@ export default function HomeScreen() {
   if (uniqueUser && location) {
     return (
       <View style={styles.container}>
-        <StatusBar />
+        {/* <NavBar/> */}
         <View
           style={[
             styles.SOS,
@@ -207,6 +208,7 @@ export default function HomeScreen() {
           alignContent: "center",
           margin: "auto",
         }}>
+           {/* <NavBar/> */}
         <View
           style={{ backgroundColor: "white", padding: 10, borderRadius: 10 }}>
           <Text style={{ borderBottomWidth: 1 }}>Enter Your Name:</Text>
