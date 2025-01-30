@@ -187,11 +187,11 @@ export default function HomeScreen() {
 
       {/* Main content: use marginTop to avoid overlap by the NavBar */}
       <View style={styles.mainContent}>
-        {loading ? (
+        {/* {loading ? (
           <ActivityIndicator size="large" color="#FF416C" />
-        ) : (
-          renderMainContent()
-        )}
+        ) : ( */}
+        {renderMainContent()}
+        {/* )} */}
       </View>
     </SafeAreaView>
   );
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     backgroundColor: "#fff",
     borderRadius: 12,
-    width: "90%",
+    width: 350,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
