@@ -92,6 +92,9 @@ export default function HomeScreen() {
                     marginHorizontal: 10,
                   }}>
                   <Text style={{ fontSize: 30 }}>{i.name} Needs Help</Text>
+                  <Text>
+                    Emergency Keywords: {i.texts ? i.texts.join(",") : null}
+                  </Text>
                   <MapView
                     style={{ width: 300, height: 300 }}
                     initialRegion={{

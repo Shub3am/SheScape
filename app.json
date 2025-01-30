@@ -8,15 +8,30 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {"bundleIdentifier": "com.shescape","config": {"googleMaps": {"apiKey": "AIzaSyAmMveLjVHmrDEj6dFRtJC4ZHkg6-2N5Uc"}},
-      "supportsTablet": true,   "infoPlist": {
+    "ios": {
+      "bundleIdentifier": "com.shescape",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAmMveLjVHmrDEj6dFRtJC4ZHkg6-2N5Uc"
+        }
+      },
+      "supportsTablet": true,
+      "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show your current position."
       }
     },
-    
-    "android": { "package": "com.shescape","config": {"googleMaps": {"apiKey": "AIzaSyAmMveLjVHmrDEj6dFRtJC4ZHkg6-2N5Uc"}},"android": {
-      "permissions": ["ACCESS_FINE_LOCATION"]
-    },
+    "android": {
+      "package": "com.shescape",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAmMveLjVHmrDEj6dFRtJC4ZHkg6-2N5Uc"
+        }
+      },
+      "android": {
+        "permissions": [
+          "ACCESS_FINE_LOCATION"
+        ]
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -37,16 +52,21 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ],   [
-                "@rnmapbox/maps",
-                {
-                  "RNMapboxMapsDownloadToken": "pk.eyJ1Ijoic2h1YmhhbXZzIiwiYSI6ImNtNmloeGt5MzA5dnAyanM1YXJtNnMyOWkifQ.fx-rqjhTHSNCpHwnXzDZ-g"
-                }
-              ], ["expo-location",
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsDownloadToken": "pk.eyJ1Ijoic2h1YmhhbXZzIiwiYSI6ImNtNmloeGt5MzA5dnAyanM1YXJtNnMyOWkifQ.fx-rqjhTHSNCpHwnXzDZ-g"
+        }
+      ],
+      [
+        "expo-location",
         {
           "locationWhenInUsePermission": "Allow SheScape to use your location."
-        }],
-      "expo-font"
+        }
+      ],
+      "expo-font",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true

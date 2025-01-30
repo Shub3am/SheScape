@@ -15,8 +15,11 @@ export default function HomeScreen() {
   );
   const [temp, setTemp] = useState("");
   const [uniqueUser, setUser] = useState("");
+  const [userProfile, setUserProfile] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const [newText, setNewText] = useState("");
 
   // let [fontsLoaded] = useFonts({
   //   Poppins_800ExtraBold,
@@ -68,9 +71,17 @@ export default function HomeScreen() {
         <View
           style={[
             styles.SOS,
+            ,
             SOS
-              ? { backgroundColor: "green", borderColor: "green" }
+              ? {
+                  backgroundColor: "green",
+                  borderColor: "green",
+                  position: "absolute",
+                  bottom: 100,
+                }
               : { backgroundColor: "red", borderColor: "red" },
+            ,
+            ,
           ]}>
           <Text
             onPress={async () => {
@@ -80,11 +91,17 @@ export default function HomeScreen() {
                   name: uniqueUser,
                   location: location,
                 });
+                setUserProfile({
+                  name: uniqueUser,
+                  location: location,
+                  texts: [],
+                });
               } else {
                 let d = await supabase
                   .from("allVictims")
                   .delete()
                   .eq("name", uniqueUser);
+                setUserProfile(null);
               }
               setSOS(!SOS);
             }}
@@ -93,6 +110,7 @@ export default function HomeScreen() {
                 fontSize: 40,
                 fontFamily: "Poppins_800ExtraBold",
               },
+              ,
               SOS ? { color: "white" } : { color: "white" },
             ]}>
             {SOS ? "Looking For Help" : "SOS"}
@@ -100,39 +118,80 @@ export default function HomeScreen() {
         </View>
         {SOS ? (
           <>
-            <Text
+            <View>
+              <Text
+                style={{
+                  fontSize: 20,
+                  color: "black",
+                  padding: 10,
+                  marginTop: 20,
+                  fontFamily: "Poppins_800ExtraBold",
+                }}>
+                {`All Saathi's Near You ${Volunteers.length}`}
+              </Text>
+              <MapView
+                style={{ width: 300, height: 300 }}
+                initialRegion={{
+                  latitude: location.coords.latitude,
+                  longitude: location.coords.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}>
+                <Marker
+                  coordinate={{
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.01, // Zoom in more
+                    longitudeDelta: 0.01,
+                  }}
+                  title={`My Location`}
+                />
+                {Volunteers.map((i, index) => {
+                  return (
+                    <Marker
+                      key={index}
+                      coordinate={{
+                        latitude: i.location.coords.latitude,
+                        longitude: i.location.coords.longitude,
+                        latitudeDelta: 0.01, // Zoom in more
+                        longitudeDelta: 0.01,
+                      }}
+                      title={`${i.name}'s Location`}
+                      description="Coming For Your Help"
+                    />
+                  );
+                })}
+              </MapView>
+            </View>
+            <View
               style={{
-                fontSize: 20,
-                color: "white",
-                marginTop: 20,
-                fontFamily: "Poppins_800ExtraBold",
+                backgroundColor: "white",
+
+                gap: 2,
+                padding: 10,
+                width: 200,
+                margin: 20,
+                borderWidth: 1,
               }}>
-              {Volunteers.length ? `All Saathi's Near You` : null}
-            </Text>
-            <MapView
-              style={{ width: 300, height: 300 }}
-              initialRegion={{
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}>
-              {Volunteers.map((i, index) => {
-                return (
-                  <Marker
-                    key={index}
-                    coordinate={{
-                      latitude: i.location.coords.latitude,
-                      longitude: i.location.coords.longitude,
-                      latitudeDelta: 0.01, // Zoom in more
-                      longitudeDelta: 0.01,
-                    }}
-                    title={`${i.name}'s Location`}
-                    description="Help Her"
-                  />
-                );
-              })}
-            </MapView>{" "}
+              <Text>Emergency Keywords</Text>
+              <TextInput
+                style={{ borderWidth: 1 }}
+                onChangeText={(t) => {
+                  setNewText(t);
+                }}
+              />
+              <Button
+                title="Send Message"
+                onPress={async () => {
+                  let currentProfile = userProfile;
+                  currentProfile.texts = [...currentProfile.texts, newText];
+                  let sendText = await supabase
+                    .from("allVictims")
+                    .update({ texts: currentProfile.texts })
+                    .eq("name", uniqueUser);
+                }}
+              />
+            </View>
           </>
         ) : null}
       </View>
@@ -147,7 +206,8 @@ export default function HomeScreen() {
           alignContent: "center",
           margin: "auto",
         }}>
-        <View style={{ backgroundColor: "white", padding: 10 }}>
+        <View
+          style={{ backgroundColor: "white", padding: 10, borderRadius: 10 }}>
           <Text style={{ borderBottomWidth: 1 }}>Enter Your Name:</Text>
           <TextInput
             onChangeText={(e) => {
@@ -176,7 +236,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "black",
+    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
   },
