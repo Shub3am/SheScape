@@ -7,7 +7,6 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
@@ -39,6 +38,15 @@ export default function TabLayout() {
         name="helpSomeone"
         options={{
           title: "Help Someone",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome6 size={28} name="people-group" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="SafeZones"
+        options={{
+          title: "Safe Zones",
           tabBarIcon: ({ color }) => (
             <FontAwesome6 size={28} name="people-group" color={color} />
           ),

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, Button } from "react-native";
 import { useState, useEffect } from "react";
 import { useFonts, Poppins_800ExtraBold } from "@expo-google-fonts/poppins";
-
+import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "../utils/supabase";
 import geolib from "geolib";
@@ -68,6 +68,7 @@ export default function HomeScreen() {
   if (uniqueUser && location) {
     return (
       <View style={styles.container}>
+        <StatusBar />
         <View
           style={[
             styles.SOS,
