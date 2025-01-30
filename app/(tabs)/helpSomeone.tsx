@@ -1,77 +1,68 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Button,
-  ScrollView,
-  TextInput,
-} from "react-native";
-import * as Location from "expo-location";
-import MapView, { Marker } from "react-native-maps";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { supabase } from "../utils/supabase";
+import { useState, useEffect, useCallback } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from "react-native"
+import * as Location from "expo-location"
+import MapView, { Marker } from "react-native-maps"
+import { SafeAreaView } from "react-native-safe-area-context"
+import { supabase } from "../utils/supabase"
+import { LinearGradient } from "expo-linear-gradient"
+import { Ionicons } from "@expo/vector-icons"
 
 // A simple NavBar pinned to the top
 export function NavBar() {
   return (
-    <View style={styles.navBar}>
+    <LinearGradient colors={["#FF416C", "#FF4B2B"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.navBar}>
       <Text style={styles.navBarTitle}>sheScape - A Safer World</Text>
-    </View>
-  );
+    </LinearGradient>
+  )
 }
 
 export default function HomeScreen() {
-  const [SOS, setSOS] = useState(false);
-  const [victims, setVictims] = useState([]);
-  const [readyToHelp, setReadyToHelp] = useState(false);
-  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [SOS, setSOS] = useState(false)
+  const [victims, setVictims] = useState([])
+  const [readyToHelp, setReadyToHelp] = useState(false)
+  const [location, setLocation] = useState<Location.LocationObject | null>(null)
 
-  const [temp, setTemp] = useState("");
-  const [uniqueUser, setUser] = useState("");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  // Optional font usage:
-  // const [fontsLoaded] = useFonts({
-  //   Poppins_800ExtraBold,
-  // });
+  const [temp, setTemp] = useState("")
+  const [uniqueUser, setUser] = useState("")
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [loading, setLoading] = useState<boolean>(false)
 
   // Fetch location
-  const fetchLocation = async () => {
-    setLoading(true);
+  const fetchLocation = useCallback(async () => {
+    setLoading(true)
     try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
-        return;
+        setErrorMsg("Permission to access location was denied")
+        return
       }
-      let locationData = await Location.getCurrentPositionAsync({});
-      setLocation(locationData);
+      const locationData = await Location.getCurrentPositionAsync({})
+      setLocation(locationData)
     } catch (error) {
-      setErrorMsg("Error fetching location");
+      setErrorMsg("Error fetching location")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }, [])
 
   // Fetch victims periodically
   useEffect(() => {
-    const interval = setInterval(() => {
-      (async () => {
-        let getNearByVictims = await supabase.from("allVictims").select("*");
-        if (getNearByVictims.data) {
-          setVictims(getNearByVictims.data);
-        }
-      })();
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+    const fetchVictims = async () => {
+      const getNearByVictims = await supabase.from("allVictims").select("*")
+      if (getNearByVictims.data) {
+        setVictims(getNearByVictims.data)
+      }
+    }
+
+    fetchVictims()
+    const interval = setInterval(fetchVictims, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Fetch location on mount
   useEffect(() => {
-    fetchLocation();
-  }, []);
+    fetchLocation()
+  }, [fetchLocation])
 
   // If user has entered name and location is available
   const renderMainContent = () => {
@@ -79,17 +70,18 @@ export default function HomeScreen() {
       return (
         <>
           {!victims.length ? (
-            <Text style={styles.infoText}>
-              No One Looking For Help At The Moment
-            </Text>
+            <View style={styles.noVictimsContainer}>
+              <Ionicons name="checkmark-circle" size={64} color="#4CAF50" />
+              <Text style={styles.infoText}>No One Looking For Help At The Moment</Text>
+            </View>
           ) : (
             <ScrollView contentContainerStyle={styles.scrollContent}>
               {victims.map((i, index) => {
                 return (
                   <View key={index} style={styles.victimCard}>
                     <Text style={styles.victimName}>{i.name} Needs Help</Text>
-                    <Text>
-                      Emergency Keywords: {i.texts ? i.texts.join(", ") : null}
+                    <Text style={styles.emergencyKeywords}>
+                      Emergency Keywords: {i.texts ? i.texts.join(", ") : "None"}
                     </Text>
                     <MapView
                       style={styles.mapStyle}
@@ -104,75 +96,64 @@ export default function HomeScreen() {
                         coordinate={{
                           latitude: i.location.coords.latitude,
                           longitude: i.location.coords.longitude,
-                          latitudeDelta: 0.01,
-                          longitudeDelta: 0.01,
                         }}
                         title={`${i.name}'s Location`}
                         description="Help"
-                      />
+                      >
+                        <View style={styles.markerContainer}>
+                          <Ionicons name="warning" size={24} color="#FF416C" />
+                        </View>
+                      </Marker>
                     </MapView>
                   </View>
-                );
+                )
               })}
             </ScrollView>
           )}
 
           {/* Ready/Not Ready button */}
           <View style={styles.helpButtonWrapper}>
-            <View
-              style={[
-                styles.SOS,
-                readyToHelp
-                  ? { backgroundColor: "green", borderColor: "green" }
-                  : { backgroundColor: "red", borderColor: "red" },
-              ]}
+            <TouchableOpacity
+              style={[styles.SOS, readyToHelp ? { backgroundColor: "#4CAF50" } : { backgroundColor: "#FF416C" }]}
+              onPress={async () => {
+                if (!readyToHelp && location) {
+                  await supabase.from("availableVolunteers").insert({ name: uniqueUser, location: location })
+                } else {
+                  await supabase.from("availableVolunteers").delete().eq("name", uniqueUser)
+                }
+                setReadyToHelp(!readyToHelp)
+              }}
             >
-              <Text
-                onPress={async () => {
-                  fetchLocation();
-                  if (!readyToHelp && location) {
-                    await supabase
-                      .from("availableVolunteers")
-                      .insert({ name: uniqueUser, location: location });
-                  } else {
-                    await supabase
-                      .from("availableVolunteers")
-                      .delete()
-                      .eq("name", uniqueUser);
-                  }
-                  setReadyToHelp(!readyToHelp);
-                }}
-                style={styles.helpText}
-              >
-                {readyToHelp ? "I am Ready To Help" : "Not Ready"}
-              </Text>
-            </View>
+              <Text style={styles.helpText}>{readyToHelp ? "I am Ready To Help" : "Not Ready"}</Text>
+            </TouchableOpacity>
           </View>
         </>
-      );
+      )
     } else {
       // If user name not entered or location not fetched, show input
       return (
         <View style={styles.inputContainer}>
-          <Text style={{ borderBottomWidth: 1, marginBottom: 10 }}>
-            Enter Your Name:
-          </Text>
+          <Text style={styles.inputLabel}>Enter Your Name:</Text>
           <TextInput
             onChangeText={(e) => {
-              setTemp(e);
+              setTemp(e)
             }}
             style={styles.textInput}
+            placeholder="Your name"
+            placeholderTextColor="#999"
           />
-          <Button
+          <TouchableOpacity
+            style={styles.submitButton}
             onPress={() => {
-              setUser(temp);
+              setUser(temp)
             }}
-            title="Submit"
-          />
+          >
+            <Text style={styles.submitButtonText}>Submit</Text>
+          </TouchableOpacity>
         </View>
-      );
+      )
     }
-  };
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -180,116 +161,140 @@ export default function HomeScreen() {
       <NavBar />
 
       {/* Main content: use marginTop to avoid overlap by the NavBar */}
-      <View style={styles.mainContent}>{renderMainContent()}</View>
+      <View style={styles.mainContent}>
+        {loading ? <ActivityIndicator size="large" color="#FF416C" /> : renderMainContent()}
+      </View>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
-  // Container
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f5f5",
   },
-
-  // NavBar: pinned to the top
   navBar: {
-    // position: "absolute",
-    // top: 0,
-    
-  
-    left: 0,
-    right: 0,
     height: 60,
-    backgroundColor: "#3A3A3A",
-    zIndex: 999, // Ensures it's above other content
-    paddingHorizontal: 20,
     justifyContent: "center",
+    paddingHorizontal: 20,
   },
   navBarTitle: {
     color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "bold",
   },
-
-  // Content below the NavBar
   mainContent: {
     flex: 1,
-    marginTop: 60, // This ensures the content starts below the NavBar
-    alignItems: "center", // Center horizontally if you like
+    marginTop: 10,
+    alignItems: "center",
   },
-
-  // When no victims
+  noVictimsContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   infoText: {
     fontSize: 18,
-    color: "black",
+    color: "#333",
     marginTop: 20,
     textAlign: "center",
   },
-
-  // Scroll
   scrollContent: {
     paddingBottom: 120,
+    alignItems: "center",
   },
-
-  // Victim card
   victimCard: {
-    padding: 15,
-    marginVertical: 5,
-    backgroundColor: "#ecf0f1",
-    borderRadius: 8,
+    padding: 20,
+    marginVertical: 10,
+    backgroundColor: "#fff",
+    borderRadius: 12,
     width: "90%",
-    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   victimName: {
-    fontSize: 24,
-    marginBottom: 5,
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#333",
   },
-
-  // Map
+  emergencyKeywords: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 10,
+  },
   mapStyle: {
     width: "100%",
     height: 200,
-    marginTop: 10,
+    borderRadius: 12,
+    overflow: "hidden",
   },
-
-  // Help Button
+  markerContainer: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 5,
+  },
   helpButtonWrapper: {
     position: "absolute",
-    bottom: 100,
+    bottom: 30,
     alignSelf: "center",
+    width: "90%",
   },
   SOS: {
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 10,
+    borderRadius: 30,
+    padding: 15,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   helpText: {
     color: "white",
     fontSize: 18,
+    fontWeight: "bold",
   },
-
-  // User Input
   inputContainer: {
-    width: "80%",
+    width: "90%",
     backgroundColor: "#fff",
     padding: 20,
-    borderRadius: 8,
-    // optional shadow for iOS
+    borderRadius: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    // elevation for Android
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
     marginTop: 50,
   },
-  textInput: {
-    backgroundColor: "#f0f0f0",
-    borderColor: "black",
-    borderWidth: 0.5,
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
+  inputLabel: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: "#333",
   },
-});
+  textInput: {
+    backgroundColor: "#f9f9f9",
+    borderColor: "#ddd",
+    borderWidth: 1,
+    padding: 15,
+    marginBottom: 20,
+    borderRadius: 8,
+    fontSize: 16,
+  },
+  submitButton: {
+    backgroundColor: "#FF416C",
+    borderRadius: 8,
+    padding: 15,
+    alignItems: "center",
+  },
+  submitButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+})
+
