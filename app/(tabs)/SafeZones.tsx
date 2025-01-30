@@ -103,6 +103,7 @@ export default function Safe() {
               );
             })}
           </MapView>
+          <Text>Nearest Store: Starbucks C4E Marker, 5 Mins Away</Text>
         </View>
       </SafeAreaView>
     );
