@@ -4,7 +4,9 @@ import { useFonts, Poppins_800ExtraBold } from "@expo-google-fonts/poppins";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "../utils/supabase";
+import geolib from "geolib";
 import * as Location from "expo-location";
+import MapView, { Marker } from "react-native-maps";
 export default function HomeScreen() {
   const [SOS, setSOS] = useState(false);
   const [Volunteers, setVolunteers] = useState([]);
@@ -15,6 +17,7 @@ export default function HomeScreen() {
   const [uniqueUser, setUser] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
   // let [fontsLoaded] = useFonts({
   //   Poppins_800ExtraBold,
   // });
@@ -36,7 +39,6 @@ export default function HomeScreen() {
       }
 
       let locationData = await Location.getCurrentPositionAsync({});
-      console.log(locationData, "hehehe");
       setLocation(locationData);
     } catch (error) {
       setErrorMsg("Error fetching location");
@@ -45,23 +47,21 @@ export default function HomeScreen() {
     }
   };
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     (async () => {
-  //       let getNearByVolunteers = await supabase
-  //         .from("availableVolunteers")
-  //         .select("*");
-  //       console.log(getNearByVolunteers);
-  //       setVolunteers(getNearByVolunteers.data);
-  //     })();
-  //   }, 6000);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      (async () => {
+        let getAllVolunteers = await supabase
+          .from("availableVolunteers")
+          .select("*");
+        setVolunteers(getAllVolunteers.data);
+      })();
+    }, 5000);
 
-  //   return () => clearInterval(interval);
-  // }, []);
+    return () => clearInterval(interval);
+  }, []);
   useEffect(() => {
     fetchLocation();
   }, []);
-  console.log(JSON.stringify(location));
   if (uniqueUser && location) {
     return (
       <View style={styles.container}>
@@ -98,17 +98,43 @@ export default function HomeScreen() {
             {SOS ? "Looking For Help" : "SOS"}
           </Text>
         </View>
-        <Text
-          style={{
-            fontSize: 20,
-            color: "white",
-            marginTop: 20,
-            fontFamily: "Poppins_800ExtraBold",
-          }}>
-          {Volunteers.length
-            ? `Nearest Saathi is ${Volunteers.length} Away`
-            : null}
-        </Text>
+        {SOS ? (
+          <>
+            <Text
+              style={{
+                fontSize: 20,
+                color: "white",
+                marginTop: 20,
+                fontFamily: "Poppins_800ExtraBold",
+              }}>
+              {Volunteers.length ? `All Saathi's Near You` : null}
+            </Text>
+            <MapView
+              style={{ width: 300, height: 300 }}
+              initialRegion={{
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}>
+              {Volunteers.map((i, index) => {
+                return (
+                  <Marker
+                    key={index}
+                    coordinate={{
+                      latitude: i.location.coords.latitude,
+                      longitude: i.location.coords.longitude,
+                      latitudeDelta: 0.01, // Zoom in more
+                      longitudeDelta: 0.01,
+                    }}
+                    title={`${i.name}'s Location`}
+                    description="Help Her"
+                  />
+                );
+              })}
+            </MapView>{" "}
+          </>
+        ) : null}
       </View>
     );
   } else {

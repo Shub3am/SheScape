@@ -11,10 +11,8 @@ import { useFonts, Poppins_800ExtraBold } from "@expo-google-fonts/poppins";
 import * as Location from "expo-location";
 import { supabase } from "../utils/supabase";
 // import Map from "react-map-gl/mapbox";
-import Map from "react-map-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
-import "mapbox-gl/dist/mapbox-gl.css";
 
 export default function HomeScreen() {
   const [SOS, setSOS] = useState(false);
@@ -51,7 +49,7 @@ export default function HomeScreen() {
     const interval = setInterval(() => {
       (async () => {
         let getNearByVictims = await supabase.from("allVictims").select("*");
-        console.log(getNearByVictims);
+        // console.log(getNearByVictims);
         if (getNearByVictims.data) {
           setVictims(getNearByVictims.data);
         }
@@ -81,32 +79,44 @@ export default function HomeScreen() {
             contentContainerStyle={{
               paddingBottom: 120,
             }}>
-            {victims.map((i, index) => (
-              <View
-                key={index}
-                style={{
-                  padding: 15,
-                  marginVertical: 5,
-                  backgroundColor: "#ecf0f1",
-                  borderRadius: 8,
-                  marginHorizontal: 10,
-                }}>
-                <Text>{i.name}</Text>
-              </View>
-            ))}
+            {victims.map((i, index) => {
+              return (
+                <View
+                  key={index}
+                  style={{
+                    padding: 15,
+                    marginVertical: 5,
+                    backgroundColor: "#ecf0f1",
+                    borderBottomWidth: 1,
+                    borderRadius: 8,
+                    marginHorizontal: 10,
+                  }}>
+                  <Text style={{ fontSize: 30 }}>{i.name} Needs Help</Text>
+                  <MapView
+                    style={{ width: 300, height: 300 }}
+                    initialRegion={{
+                      latitude: i.location.coords.latitude,
+                      longitude: i.location.coords.longitude,
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }}>
+                    <Marker
+                      coordinate={{
+                        latitude: i.location.coords.latitude,
+                        longitude: i.location.coords.longitude,
+                        latitudeDelta: 0.01, // Zoom in more
+                        longitudeDelta: 0.01,
+                      }}
+                      title={`${i.name}'s Location`}
+                      description="Help Her"
+                    />
+                  </MapView>
+                </View>
+              );
+            })}
           </ScrollView>
         )}
-        <Map
-          // https://visgl.github.io/react-map-gl/docs/get-started/mapbox-tokens
-          mapboxAccessToken="pk.eyJ1Ijoic2h1YmhhbXZzIiwiYSI6ImNtNmloeGt5MzA5dnAyanM1YXJtNnMyOWkifQ.fx-rqjhTHSNCpHwnXzDZ-g"
-          initialViewState={{
-            longitude: -100,
-            latitude: 40,
-            zoom: 3.5,
-          }}
-          style={{ width: 600, height: 400 }}
-          mapStyle="mapbox://styles/mapbox/streets-v9"
-        />{" "}
+
         <View
           style={{
             backgroundColor: "white",

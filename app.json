@@ -8,13 +8,13 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
+    "ios": {"bundleIdentifier": "com.shescape","config": {"googleMaps": {"apiKey": "AIzaSyAmMveLjVHmrDEj6dFRtJC4ZHkg6-2N5Uc"}},
       "supportsTablet": true,   "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show your current position."
       }
     },
     
-    "android": { "android": {
+    "android": { "package": "com.shescape","config": {"googleMaps": {"apiKey": "AIzaSyAmMveLjVHmrDEj6dFRtJC4ZHkg6-2N5Uc"}},"android": {
       "permissions": ["ACCESS_FINE_LOCATION"]
     },
       "adaptiveIcon": {
