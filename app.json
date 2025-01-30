@@ -9,9 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,   "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show your current position."
+      }
     },
-    "android": {
+    
+    "android": { "android": {
+      "permissions": ["ACCESS_FINE_LOCATION"]
+    },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -32,7 +37,16 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],   [
+                "@rnmapbox/maps",
+                {
+                  "RNMapboxMapsDownloadToken": "pk.eyJ1Ijoic2h1YmhhbXZzIiwiYSI6ImNtNmloeGt5MzA5dnAyanM1YXJtNnMyOWkifQ.fx-rqjhTHSNCpHwnXzDZ-g"
+                }
+              ], ["expo-location",
+        {
+          "locationWhenInUsePermission": "Allow SheScape to use your location."
+        }],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
