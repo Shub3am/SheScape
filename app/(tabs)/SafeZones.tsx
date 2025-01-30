@@ -37,6 +37,7 @@ export default function Safe() {
         let places = await fetch(
           `https://api.geoapify.com/v2/place-details?lat=${location.coords.latitude}&lon=${location.coords.longitude}&features=radius_500,radius_500.supermarket,walk_10,drive_5,walk_10.supermarket,drive_5.supermarket,drive_5.shopping_mall,drive_5.fuel,drive_5.parking&apiKey=80ff7d38a43b4d539b9d6f18903dc6b0`
         ).then((response) => response.json());
+        console.log(location);
         setPlace(places);
       }
     })();
@@ -69,8 +70,8 @@ export default function Safe() {
     },
   ];
 
-  if (getPlace && location) {
-    console.log(getPlace.features[0].properties, location);
+  if (location && getPlace) {
+    // console.log(getPlace.features[0].properties, location);
     return (
       <SafeAreaView>
         <View style={styles.container}>
@@ -87,24 +88,27 @@ export default function Safe() {
               latitudeDelta: 0.01,
               longitudeDelta: 0.01,
             }}>
-            {" "}
-            {getPlace.features.map((i) => {
-              return (
-                <Marker
-                  coordinate={{
-                    latitude: i.properties.lat,
-                    longitude: i.properties.lon,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                  }}
-                  title={`${i.name}'s Location`}
-                  description="Help"
-                />
-              );
-            })}
+            {getPlace &&
+              getPlace.features.map((i, index) => {
+                return (
+                  <Marker
+                    key={index}
+                    coordinate={{
+                      latitude: i.properties.lat,
+                      longitude: i.properties.lon,
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }}
+                    title={`${i.name}'s Location`}
+                    description="Help"
+                  />
+                );
+              })}
           </MapView>
-          <Text>Nearest Store: Starbucks C4E Marker, 5 Mins Away</Text>
         </View>
+        <Text style={{ position: "absolute", bottom: 200, color: "black" }}>
+          Nearest Store: Starbucks C4E Marker, 5 Mins Away
+        </Text>
       </SafeAreaView>
     );
   }
