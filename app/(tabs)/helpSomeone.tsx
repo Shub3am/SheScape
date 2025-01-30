@@ -1,68 +1,82 @@
-import { useState, useEffect, useCallback } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from "react-native"
-import * as Location from "expo-location"
-import MapView, { Marker } from "react-native-maps"
-import { SafeAreaView } from "react-native-safe-area-context"
-import { supabase } from "../utils/supabase"
-import { LinearGradient } from "expo-linear-gradient"
-import { Ionicons } from "@expo/vector-icons"
+import { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  ActivityIndicator,
+} from "react-native";
+import * as Location from "expo-location";
+import MapView, { Marker } from "react-native-maps";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { supabase } from "../utils/supabase";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 // A simple NavBar pinned to the top
 export function NavBar() {
   return (
-    <LinearGradient colors={["#FF416C", "#FF4B2B"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.navBar}>
+    <LinearGradient
+      colors={["#FF416C", "#FF4B2B"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={styles.navBar}>
       <Text style={styles.navBarTitle}>sheScape - A Safer World</Text>
     </LinearGradient>
-  )
+  );
 }
 
 export default function HomeScreen() {
-  const [SOS, setSOS] = useState(false)
-  const [victims, setVictims] = useState([])
-  const [readyToHelp, setReadyToHelp] = useState(false)
-  const [location, setLocation] = useState<Location.LocationObject | null>(null)
+  const [SOS, setSOS] = useState(false);
+  const [victims, setVictims] = useState([]);
+  const [readyToHelp, setReadyToHelp] = useState(false);
+  const [location, setLocation] = useState<Location.LocationObject | null>(
+    null
+  );
 
-  const [temp, setTemp] = useState("")
-  const [uniqueUser, setUser] = useState("")
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
+  const [temp, setTemp] = useState("");
+  const [uniqueUser, setUser] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Fetch location
   const fetchLocation = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync()
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied")
-        return
+        setErrorMsg("Permission to access location was denied");
+        return;
       }
-      const locationData = await Location.getCurrentPositionAsync({})
-      setLocation(locationData)
+      const locationData = await Location.getCurrentPositionAsync({});
+      setLocation(locationData);
     } catch (error) {
-      setErrorMsg("Error fetching location")
+      setErrorMsg("Error fetching location");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   // Fetch victims periodically
   useEffect(() => {
     const fetchVictims = async () => {
-      const getNearByVictims = await supabase.from("allVictims").select("*")
+      const getNearByVictims = await supabase.from("allVictims").select("*");
       if (getNearByVictims.data) {
-        setVictims(getNearByVictims.data)
+        setVictims(getNearByVictims.data);
       }
-    }
+    };
 
-    fetchVictims()
-    const interval = setInterval(fetchVictims, 3000)
-    return () => clearInterval(interval)
-  }, [])
+    fetchVictims();
+    const interval = setInterval(fetchVictims, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch location on mount
   useEffect(() => {
-    fetchLocation()
-  }, [fetchLocation])
+    fetchLocation();
+  }, [fetchLocation]);
 
   // If user has entered name and location is available
   const renderMainContent = () => {
@@ -72,7 +86,9 @@ export default function HomeScreen() {
           {!victims.length ? (
             <View style={styles.noVictimsContainer}>
               <Ionicons name="checkmark-circle" size={64} color="#4CAF50" />
-              <Text style={styles.infoText}>No One Looking For Help At The Moment</Text>
+              <Text style={styles.infoText}>
+                No One Looking For Help At The Moment
+              </Text>
             </View>
           ) : (
             <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -81,7 +97,8 @@ export default function HomeScreen() {
                   <View key={index} style={styles.victimCard}>
                     <Text style={styles.victimName}>{i.name} Needs Help</Text>
                     <Text style={styles.emergencyKeywords}>
-                      Emergency Keywords: {i.texts ? i.texts.join(", ") : "None"}
+                      Emergency Keywords:{" "}
+                      {i.texts ? i.texts.join(", ") : "None"}
                     </Text>
                     <MapView
                       style={styles.mapStyle}
@@ -90,23 +107,21 @@ export default function HomeScreen() {
                         longitude: i.location.coords.longitude,
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
-                      }}
-                    >
+                      }}>
                       <Marker
                         coordinate={{
                           latitude: i.location.coords.latitude,
                           longitude: i.location.coords.longitude,
                         }}
                         title={`${i.name}'s Location`}
-                        description="Help"
-                      >
+                        description="Help">
                         <View style={styles.markerContainer}>
                           <Ionicons name="warning" size={24} color="#FF416C" />
                         </View>
                       </Marker>
                     </MapView>
                   </View>
-                )
+                );
               })}
             </ScrollView>
           )}
@@ -114,21 +129,32 @@ export default function HomeScreen() {
           {/* Ready/Not Ready button */}
           <View style={styles.helpButtonWrapper}>
             <TouchableOpacity
-              style={[styles.SOS, readyToHelp ? { backgroundColor: "#4CAF50" } : { backgroundColor: "#FF416C" }]}
+              style={[
+                styles.SOS,
+                readyToHelp
+                  ? { backgroundColor: "#4CAF50" }
+                  : { backgroundColor: "#FF416C" },
+              ]}
               onPress={async () => {
                 if (!readyToHelp && location) {
-                  await supabase.from("availableVolunteers").insert({ name: uniqueUser, location: location })
+                  await supabase
+                    .from("availableVolunteers")
+                    .insert({ name: uniqueUser, location: location });
                 } else {
-                  await supabase.from("availableVolunteers").delete().eq("name", uniqueUser)
+                  await supabase
+                    .from("availableVolunteers")
+                    .delete()
+                    .eq("name", uniqueUser);
                 }
-                setReadyToHelp(!readyToHelp)
-              }}
-            >
-              <Text style={styles.helpText}>{readyToHelp ? "I am Ready To Help" : "Not Ready"}</Text>
+                setReadyToHelp(!readyToHelp);
+              }}>
+              <Text style={styles.helpText}>
+                {readyToHelp ? "I am Ready To Help" : "Not Ready"}
+              </Text>
             </TouchableOpacity>
           </View>
         </>
-      )
+      );
     } else {
       // If user name not entered or location not fetched, show input
       return (
@@ -136,7 +162,7 @@ export default function HomeScreen() {
           <Text style={styles.inputLabel}>Enter Your Name:</Text>
           <TextInput
             onChangeText={(e) => {
-              setTemp(e)
+              setTemp(e);
             }}
             style={styles.textInput}
             placeholder="Your name"
@@ -145,15 +171,14 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.submitButton}
             onPress={() => {
-              setUser(temp)
-            }}
-          >
+              setUser(temp);
+            }}>
             <Text style={styles.submitButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>
-      )
+      );
     }
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -162,10 +187,14 @@ export default function HomeScreen() {
 
       {/* Main content: use marginTop to avoid overlap by the NavBar */}
       <View style={styles.mainContent}>
-        {loading ? <ActivityIndicator size="large" color="#FF416C" /> : renderMainContent()}
+        {loading ? (
+          <ActivityIndicator size="large" color="#FF416C" />
+        ) : (
+          renderMainContent()
+        )}
       </View>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -239,7 +268,7 @@ const styles = StyleSheet.create({
   },
   helpButtonWrapper: {
     position: "absolute",
-    bottom: 30,
+    bottom: 100,
     alignSelf: "center",
     width: "90%",
   },
@@ -296,5 +325,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-})
-
+});

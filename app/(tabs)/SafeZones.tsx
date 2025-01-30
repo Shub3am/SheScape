@@ -32,7 +32,7 @@ export default function Safe() {
   useEffect(() => {
     fetchLocation();
     (async () => {
-      await fetchLocation();
+      fetchLocation();
       if (location) {
         let places = await fetch(
           `https://api.geoapify.com/v2/place-details?lat=${location.coords.latitude}&lon=${location.coords.longitude}&features=radius_500,radius_500.supermarket,walk_10,drive_5,walk_10.supermarket,drive_5.supermarket,drive_5.shopping_mall,drive_5.fuel,drive_5.parking&apiKey=80ff7d38a43b4d539b9d6f18903dc6b0`
@@ -42,33 +42,6 @@ export default function Safe() {
       }
     })();
   }, []);
-
-  const data = [
-    {
-      properties: {
-        address_line1: "Sher Service Station",
-        address_line2: "Street No 1, Janakpuri, - 110058, Delhi, India",
-        formatted:
-          "Sher Service Station, Street No 1, Janakpuri, - 110058, Delhi, India",
-      },
-    },
-    {
-      properties: {
-        address_line1: "Shaheed Major Rajeev Laul Marg",
-        address_line2: "Janakpuri, - 110058, Delhi, India",
-        formatted:
-          "Shaheed Major Rajeev Laul Marg, Janakpuri, - 110058, Delhi, India",
-      },
-    },
-    {
-      properties: {
-        address_line1: "Satguru Ram Singh Marg",
-        address_line2: "Delhi Cantonment, New Delhi - 110064, Delhi, India",
-        formatted:
-          "Satguru Ram Singh Marg, Delhi Cantonment, New Delhi - 110064, Delhi, India",
-      },
-    },
-  ];
 
   if (location && getPlace) {
     // console.log(getPlace.features[0].properties, location);
@@ -108,6 +81,19 @@ export default function Safe() {
         </View>
         <Text style={{ position: "absolute", bottom: 200, color: "black" }}>
           Nearest Store: Starbucks C4E Marker, 5 Mins Away
+        </Text>
+      </SafeAreaView>
+    );
+  } else {
+    return (
+      <SafeAreaView>
+        <Text
+          style={{ color: "black" }}
+          onPress={() => {
+            fetchLocation();
+            console.log(location, getPlace);
+          }}>
+          Get Locations
         </Text>
       </SafeAreaView>
     );
